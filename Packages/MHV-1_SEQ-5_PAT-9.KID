@@ -1096,5 +1096,3 @@ XITLOG(ND,HT)     ; exit log
 ^5
 **END**
 **END**
-
-
