@@ -1,6 +1,6 @@
 HDI*1*11 TEST v5
 Extracted from mail message
-**KIDS**HDI*1.0*11*11^
+**KIDS**:HDI*1.0*11^
 
 **INSTALL NAME**
 HDI*1.0*11
@@ -586,5 +586,3 @@ PSTHALT ;Print post-install halted text
 5^
 **END**
 **END**
-
-

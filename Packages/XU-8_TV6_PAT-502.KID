@@ -1,6 +1,6 @@
 KIDS Distribution saved on Jul 2, 2012@12:40:42
 XU*8*502
-**KIDS**:XU*8.0*502
+**KIDS**:XU*8.0*502^
 
 **INSTALL NAME**
 XU*8.0*502
@@ -1930,5 +1930,3 @@ filter by.
 6^
 **END**
 **END**
-
-

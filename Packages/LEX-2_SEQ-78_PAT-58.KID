@@ -1434,5 +1434,3 @@ one coding system can be translated to another coding system.
 ^78
 **END**
 **END**
-
-

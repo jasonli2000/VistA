@@ -842,5 +842,3 @@ PCDETAIL(LST,PATIENT)   ; return Primary Care Detail information
 6^
 **END**
 **END**
-
-
