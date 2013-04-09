@@ -66,8 +66,10 @@ class KIDSPatchSequenceApply(object):
     self._vistaPatchInfo = VistAPackageInfoFetcher(testClient)
     self._outPatchList = []
     self._patchSet = set()
-    initConsoleLogging()
-    initFileLogging(os.path.join(logFileDir, self.DEFAULT_OUTPUT_FILE_LOG))
+    import logging
+    initConsoleLogging(logging.DEBUG)
+    initFileLogging(os.path.join(logFileDir, self.DEFAULT_OUTPUT_FILE_LOG),
+                    logging.DEBUG)
 
   """ generate the patch order sequence base on input """
   def generateKIDSPatchSequence(self, patchDir, installName=None,
@@ -335,6 +337,9 @@ class KIDSPatchSequenceApply(object):
       (namespace,ver,patch) = extractInfoFromInstallName(item)
       if self._vistaPatchInfo.hasPatchInstalled(item, namespace, ver, patch):
         logger.debug("%s is arelady installed" % item)
+        continue
+      installStatus = self._vistaPatchInfo.getInstallationStatus(item)
+      if self._vistaPatchInfo.isInstallCompleted(installStatus):
         continue
       else:
         logger.error("dep %s is not installed for %s %s" %
