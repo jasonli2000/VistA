@@ -66,8 +66,10 @@ class PatchSequenceApply(object):
     self._vistaPatchInfo = VistAPackageInfoFetcher(testClient)
     self._outPatchList = []
     self._patchSet = set()
-    initConsoleLogging()
-    initFileLogging(os.path.join(logFileDir, self.DEFAULT_OUTPUT_FILE_LOG))
+    import logging
+    initConsoleLogging(logging.DEBUG)
+    initFileLogging(os.path.join(logFileDir, self.DEFAULT_OUTPUT_FILE_LOG),
+                    logging.DEBUG)
 
   """ generate the patch order sequence base on input """
   def generatePatchSequence(self, patchDir, installName=None,
