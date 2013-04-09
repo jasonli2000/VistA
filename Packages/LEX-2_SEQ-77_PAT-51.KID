@@ -1513,8 +1513,7 @@ DE(LEX) ; Deactivated 757.01
 "RTN","LEXABC",81,0)
 DC(LEX,LEXT) ; Description
 "RTN","LEXABC",82,0)
- N LEXD,LEXM S LEXD="",LEX=+($G(LEX)),LEXM=$P($G(^LEX(757.01,+($G(LEX)),1)),"^",1),LEXM=+($G(^LEX(757,+($G(LEXM)),0))) S:$D(^LEX(757
-.01,LEXM,3))&(+($G(LEXT))'=2) LEXD="*" S LEX=$G(LEXD) Q LEX
+ N LEXD,LEXM S LEXD="",LEX=+($G(LEX)),LEXM=$P($G(^LEX(757.01,+($G(LEX)),1)),"^",1),LEXM=+($G(^LEX(757,+($G(LEXM)),0))) S:$D(^LEX(757.01,LEXM,3))&(+($G(LEXT))'=2) LEXD="*" S LEX=$G(LEXD) Q LEX
 "RTN","LEXABC",83,0)
 DP(LEXS,LEXT) ; Display
 "RTN","LEXABC",84,0)
