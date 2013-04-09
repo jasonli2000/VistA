@@ -120,8 +120,6 @@ installing the patches.
    -----------------------------------------------------------------
 "BLD",8078,1,11,0)
    KERNEL V. 8.0                                          XU*8*580
-"BLD",8078,1,12,0)
-   PHARMACY DATA MANAGEMENT (PDM) V. 1.0                  PSS*1*166
 "BLD",8078,1,13,0)
    COMPUTERIZED PATIENT RECORD SYSTEM (CPRS) V. 3.0       OR*3*306
 "BLD",8078,1,14,0)
@@ -605,18 +603,14 @@ PSDRPH^^0
 "BLD",8078,"QUES",0)
 ^9.62^^
 "BLD",8078,"REQB",0)
-^9.611^3^3
+^9.611^2^2
 "BLD",8078,"REQB",1,0)
 PSD*3.0*28^2
 "BLD",8078,"REQB",2,0)
 PSD*3.0*67^2
-"BLD",8078,"REQB",3,0)
-PSS*1.0*166^2
 "BLD",8078,"REQB","B","PSD*3.0*28",1)
 
 "BLD",8078,"REQB","B","PSD*3.0*67",2)
-
-"BLD",8078,"REQB","B","PSS*1.0*166",3)
 
 "KRN",19,6722,-1)
 2^3
@@ -745,8 +739,6 @@ installing the patches.
 "PKG",276,22,1,"PAH",1,1,11,0)
    KERNEL V. 8.0                                          XU*8*580
 "PKG",276,22,1,"PAH",1,1,12,0)
-   PHARMACY DATA MANAGEMENT (PDM) V. 1.0                  PSS*1*166
-"PKG",276,22,1,"PAH",1,1,13,0)
    COMPUTERIZED PATIENT RECORD SYSTEM (CPRS) V. 3.0       OR*3*306
 "PKG",276,22,1,"PAH",1,1,14,0)
    CONTROLLED SUBSTANCES (CS) V. 3.0                      PSD*3*73
@@ -3135,8 +3127,6 @@ the patches.
 "BLD",8061,1,11,0)
    KERNEL V. 8.0                                          XU*8*580
 "BLD",8061,1,12,0)
-   PHARMACY DATA MANAGEMENT (PDM) V. 1.0                  PSS*1*166
-"BLD",8061,1,13,0)
    COMPUTERIZED PATIENT RECORD SYSTEM (CPRS) V. 3.0       OR*3*306
 "BLD",8061,1,14,0)
    CONTROLLED SUBSTANCES (CS) V. 3.0                      PSD*3*73
@@ -3999,15 +3989,13 @@ PSO LM FLAG^^0
 "BLD",8061,"QUES",0)
 ^9.62^^
 "BLD",8061,"REQB",0)
-^9.611^14^9
+^9.611^14^8
 "BLD",8061,"REQB",4,0)
 PSO*7.0*194^2
 "BLD",8061,"REQB",6,0)
 XU*8.0*580^2
 "BLD",8061,"REQB",7,0)
 PSD*3.0*73^2
-"BLD",8061,"REQB",8,0)
-PSS*1.0*166^2
 "BLD",8061,"REQB",9,0)
 PSO*7.0*377^2
 "BLD",8061,"REQB",10,0)
@@ -4031,8 +4019,6 @@ PSO*7.0*400^2
 "BLD",8061,"REQB","B","PSO*7.0*390",11)
 
 "BLD",8061,"REQB","B","PSO*7.0*400",14)
-
-"BLD",8061,"REQB","B","PSS*1.0*166",8)
 
 "BLD",8061,"REQB","B","XU*8.0*580",6)
 
@@ -4274,8 +4260,6 @@ the patches.
    -----------------------------------------------------------------
 "PKG",141,22,1,"PAH",1,1,11,0)
    KERNEL V. 8.0                                          XU*8*580
-"PKG",141,22,1,"PAH",1,1,12,0)
-   PHARMACY DATA MANAGEMENT (PDM) V. 1.0                  PSS*1*166
 "PKG",141,22,1,"PAH",1,1,13,0)
    COMPUTERIZED PATIENT RECORD SYSTEM (CPRS) V. 3.0       OR*3*306
 "PKG",141,22,1,"PAH",1,1,14,0)
