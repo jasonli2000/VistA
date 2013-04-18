@@ -23,7 +23,7 @@ import argparse
 import re
 
 from LoggerManager import initConsoleLogging, logger
-from KIDSPatchInfoParser import installNameToDirName
+from KIDSPatchInfoParser import normalizeInstallName
 
 """
   KIDS Section Parser Interface
@@ -168,7 +168,7 @@ class RoutineSectionParser(ISectionParser):
       self._curRoutine.expectCheckSum = 0
       return
 
-    patchDir = installNameToDirName(kidsBuild.installName)
+    patchDir = normalizeInstallName(kidsBuild.installName)
     if self._outDir:
       destDir = os.path.join(self._outDir, patchDir)
       if not os.path.exists(destDir):

@@ -135,14 +135,14 @@ def populate(input):
     for patch in nsPatchList:
       logger.info("Handling Kids %s" % patch)
       patchInfo = patchInfoDict[patch]
-      patchDir = os.path.join(path, "Patches", installNameToDirName(patch))
+      patchDir = os.path.join(curDir, installNameToDirName(patch))
       placePatchInfo(patchInfo, curDir, patchDir)
     # Map KIDS Info Files that do not have associated KIDS Build Files
     nsNoKidsList = [x.installName for x in noKidsPatchList if x.namespace==ns]
     for patch in nsNoKidsList:
       logger.info("Handling No Kids info File %s" % patch)
       patchInfo = noKidsInfoDict[patch]
-      patchDir = os.path.join(path, "Patches", installNameToDirName(patch))
+      patchDir = os.path.join(curDir, installNameToDirName(patch))
       placePatchInfo(patchInfo, curDir, patchDir)
     patchInfoSet.difference_update(nsPatchList)
     noKidsInfoSet.difference_update(nsNoKidsList)

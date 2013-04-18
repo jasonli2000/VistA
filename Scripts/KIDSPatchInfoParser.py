@@ -31,12 +31,21 @@ def convertToInstallName(designationName):
     installName += ".0"
   return installName
 
-""" utility function to convert installName to a valid dir Name"""
 def installNameToDirName(installName):
+  convName = convertToInstallName(installName)
+  (namespace, ver, patch) = extractInfoFromInstallName(convName)
+  if namespace and ver:
+    if patch:
+      return "%s/%s/%s" % (namespace, ver, patch)
+    return "%s/%s/0" % (namespace, ver)
+  return None
+
+""" utility function to convert installName to a valid file Name"""
+def normalizeInstallName(installName):
   return installName.replace('*','_')
-""" utility function to convert dirName to a installName """
-def dirNameToInstallName(dirName):
-  return dirName.replace('_','*')
+""" utility function to convert normlized name back to an installName """
+def unnormalizeIstallName(normalizedName):
+  return normalizedName.replace('_','*')
 """ Utility function to extract namespace, version, patchNo from installName"""
 def extractInfoFromInstallName(installName):
   namespace, ver, patch = None, None, None

@@ -48,7 +48,7 @@ from LoggerManager import logger, initConsoleLogging
 from KIDSPatchParser import KIDSPatchParser
 from KIDSPatchInfoParser import KIDSPatchInfoParser
 from KIDSPatchInfoParser import convertToInstallName
-from KIDSPatchInfoParser import dirNameToInstallName, KIDSPatchInfo
+from KIDSPatchInfoParser import unnormalizeIstallName, KIDSPatchInfo
 from KIDSPatchInfoParser import setPatchInfoFromInstallName
 from ConvertToExternalData import readSha1SumFromSha1File
 from ConvertToExternalData import isValidKIDSPatchSuffix
@@ -482,7 +482,7 @@ class KIDSPatchOrderGenerator(object):
   def __updateCustomInstaller__(self):
     for pythonScript in self._pythonScriptList:
       installName = os.path.basename(pythonScript)
-      installName = dirNameToInstallName(installName[:installName.rfind('.')])
+      installName = unnormalizeIstallName(installName[:installName.rfind('.')])
       if installName in self._patchInfoDict:
         patchInfo = self._patchInfoDict[installName]
         patchInfo.hasCustomInstaller = True
