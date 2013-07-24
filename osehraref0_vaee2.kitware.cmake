@@ -48,7 +48,7 @@
    ")
    set(dashboard_do_coverage OFF)
    set(dashboard_M_dir "/home/dashboard/git/VistA-M")
-   set(dashboard_model Experimental)
+   set(dashboard_model Nightly)
    # Include the common dashboard script.
    set(CTEST_DASHBOARD_ROOT "/home/dashboard/Dashboard")
    include(${CTEST_SCRIPT_DIRECTORY}/vista_common.cmake)
