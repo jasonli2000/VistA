@@ -12,5 +12,5 @@ EXCLUDE_MODULES=`echo ${EXCLUDE_MODULES} | tr ' ' '_'`
 echo "/usr/local/bin/ctest -R ${INCLUDE_MODULES} -N -E ${EXCLUDE_MODULES}"
 
 # Run the VA Enterprise Product Incremental 2 Night build
-/usr/local/bin/ctest -S /home/dashboard/Dashboard/Scripts/osehraref0.kitware.cmake -R ${INCLUDE_MODULES} -E ${EXCLUDE_MODULES} -VV 2>&1 > /tmp/dashboard_vaee2.log
+/usr/local/bin/ctest -S /home/dashboard/Dashboard/Scripts/osehraref0_vaee2.kitware.cmake -R ${INCLUDE_MODULES} -E ${EXCLUDE_MODULES} -VV 2>&1 > /tmp/dashboard_vaee2.log
 
