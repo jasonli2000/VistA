@@ -30,6 +30,7 @@ import time
 # import TestHelper
 from Actions import Actions
 import logging
+import datetime
 
 class ADTActions (Actions):
     '''
@@ -42,10 +43,8 @@ class ADTActions (Actions):
     def signon (self):
         ''' This provides a signon via ^XUP or ^ZU depending on the value of acode'''
         if self.acode is None:
-            self.VistA.wait('');
             self.VistA.write('S DUZ=1 D ^XUP')
         else:
-            self.VistA.wait('')
             self.VistA.write('D ^ZU')
             self.VistA.wait('ACCESS CODE:')
             self.VistA.write(self.acode)
@@ -66,6 +65,11 @@ class ADTActions (Actions):
         self.VistA.write('')
         self.VistA.wait('continue')
         self.VistA.write('')
+
+    def priortime(self, deltamin= -1):
+        '''Return a previous time '''
+        ttime = datetime.datetime.now() + datetime.timedelta(minutes=deltamin)
+        return ttime.strftime("%I:%M%p").lstrip('0')
 
     def write(self, string):
         self.VistA.write(string)
@@ -247,7 +251,7 @@ class ADTActions (Actions):
         self.VistA.wait(self.VistA.prompt)
         self.VistA.write('')
 
-    def admit_a_patient(self, ssn, bed):
+    def admit_a_patient(self, ssn, bed, time=None, doctorlist=None):
         '''This method is used to admit a patient.'''
         self.VistA.wait('Option:')
         self.VistA.write('Bed Control Menu')
@@ -257,8 +261,12 @@ class ADTActions (Actions):
         self.VistA.write(ssn)
         self.VistA.wait('CONTINUE//')
         self.VistA.write('C')
-        self.VistA.wait('NOW//')
-        self.VistA.write('NOW')
+        if time is None:
+            self.VistA.wait('NOW//')
+            self.VistA.write('NOW')
+        else:
+            self.VistA.wait('NOW//')
+            self.VistA.write(time)
         self.VistA.wait('AS A NEW ADMISSION DATE')
         self.VistA.write('YES')
         self.VistA.wait('EXCLUDED FROM THE FACILITY DIRECTORY')
@@ -280,10 +288,15 @@ class ADTActions (Actions):
         self.VistA.write(bed)
         self.VistA.wait('SPECIALTY:')
         self.VistA.write('MEDICAL OBSERVATION')
-        self.VistA.wait('PHYSICIAN:')
-        self.VistA.write('Alexander')
-        self.VistA.wait('PHYSICIAN:')
-        self.VistA.write('Smith')
+        if doctorlist is None:
+            self.VistA.wait('PHYSICIAN:')
+            self.VistA.write('Alexander')
+            self.VistA.wait('PHYSICIAN:')
+            self.VistA.write('Smith')
+        else:
+            for doctor in doctorlist:
+                self.VistA.wait('PHYSICIAN:')
+                self.VistA.write(doctor)
         self.VistA.wait('Edit')
         self.VistA.write('No')
         self.VistA.wait('ADMISSION:')
