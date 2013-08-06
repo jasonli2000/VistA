@@ -10,6 +10,7 @@
 *.GBLs          -whitespace
 *.GBL           -whitespace
 *.KIDs          -whitespace
+*.KIDS          -whitespace
 *.KID           -whitespace
 *.kid           -whitespace
 *.TXTs          -whitespace
