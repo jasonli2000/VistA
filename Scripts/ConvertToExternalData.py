@@ -32,7 +32,7 @@ EXTERNAL_DATA_PREFIX = ".ExternalData_SHA1_"
 
 IGNORE_FILE_LIST = ("CMakeLists.txt")
 
-VALID_KIDS_BUILD_SUFFIX_LIST = (".KIDs", ".KID", ".kids", ".kid")
+VALID_KIDS_BUILD_SUFFIX_LIST = ("KIDS", ".KIDs", ".KID", ".kids", ".kid")
 VALID_PATCH_INFO_SUFFIX_LIST = (".TXTs",".TXT",".txt")
 VALID_CSV_FILE_SUFFIX_LIST = (".csv",".CSV")
 VALID_GLOBAL_FILE_SUFFIX_LIST = (".GBLs", ".GBL")

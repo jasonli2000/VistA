@@ -41,6 +41,7 @@ KIDS_SINGLE_FILE_ASSOCIATION_DICT = {
   "LEX_2_84.GBLs": "LEX*2.0*84",
   "LEX_2_89.GBLs": "LEX*2.0*89",
   "LEX_2_90.GBLs": "LEX*2.0*90",
+  "LEX_2_91.GBLs": "LEX*2.0*91",
 }
 
 """
