@@ -49,7 +49,8 @@ ROUTINE_EXTRACT_EXCLUDE_LIST = (
 class VistADataExtractor:
   def __init__(self, vistARepoDir, outputResultDir,
                outputLogDir, routineOutDir=None,
-               gitBranch=None, generateReadMe=False):
+               gitBranch=None, generateReadMe=False,
+               shutdownTaskman=True):
     assert os.path.exists(vistARepoDir)
     assert os.path.exists(outputResultDir)
     assert os.path.exists(outputLogDir)
@@ -70,10 +71,12 @@ class VistADataExtractor:
     self._routineOutDir = routineOutDir
     self._generateReadMe = generateReadMe
     self._gitBranch = gitBranch
+    self._shutdownTaskman = shutdownTaskman
   def extractData(self, vistATestClient):
     self.__setupLogging__(vistATestClient)
     self.__switchBranch__()
-    self.__stopTaskman__(vistATestClient)
+    if self._shutdownTaskman:
+      self.__stopTaskman__(vistATestClient)
     self.__extractRoutines__(vistATestClient)
     self.__importZGORoutine__(vistATestClient)
     self.__exportAllGlobals__(vistATestClient)
@@ -222,6 +225,8 @@ def main():
                       help='path to the top directory to store the log files')
   parser.add_argument('-ro', '--routineOutDir', default=None,
                 help='path to the directory where GT. M stores routines')
+  parser.add_argument('-n', '--noShutdownTaskman', default=False, action='store_true',
+                help='whether to shut down taskman or not, default is True')
   result = parser.parse_args();
   print (result)
   outputDir = result.outputDir
@@ -234,7 +239,8 @@ def main():
     vistADataExtractor = VistADataExtractor(result.vistARepo,
                                             outputDir,
                                             result.logDir,
-                                            result.routineOutDir)
+                                            result.routineOutDir,
+                                            shutdownTaskman=not result.noShutdownTaskman)
     vistADataExtractor.extractData(testClient)
 
 def test1():
