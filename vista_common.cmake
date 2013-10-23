@@ -156,7 +156,6 @@ if(NOT DEFINED CTEST_GIT_COMMAND)
     PATH_SUFFIXES Git/cmd Git/bin
     )
 endif()
-
 if(NOT CTEST_GIT_COMMAND)
   message(FATAL_ERROR "CTEST_GIT_COMMAND not available!")
 endif()
@@ -232,6 +231,11 @@ if(NOT EXISTS "${dashboard_M_dir}")
       WORKING_DIRECTORY "${dashboard_M_dir}"
       )
   endif()
+endif()
+
+# Set TEST_VISTA_OTJ_SUBMISSION, default is OFF
+if(NOT DEFINED TEST_VISTA_OTJ_SUBMISSION)
+  set(TEST_VISTA_OTJ_SUBMISSION OFF)
 endif()
 
 macro(dashboard_update_M)
@@ -343,6 +347,7 @@ GIT_EXECUTABLE:FILEPATH=${CTEST_GIT_COMMAND}
 TEST_VISTA:BOOL=ON
 TEST_VISTA_FRESH:BOOL=ON
 TEST_VISTA_FRESH_ALL:BOOL=ON
+TEST_VISTA_OTJ_SUBMISSION:BOOL=${TEST_VISTA_OTJ_SUBMISSION}
 TEST_VISTA_FRESH_M_DIR:PATH=${dashboard_M_dir}
 ${CMakeCache_build_type}
 ${CMakeCache_make_program}
@@ -358,86 +363,120 @@ macro(dashboard_ctest_submit)
   endif()
 endmacro()
 
-# Start with a fresh build tree.
-file(MAKE_DIRECTORY "${CTEST_BINARY_DIRECTORY}")
-if(NOT "${CTEST_SOURCE_DIRECTORY}" STREQUAL "${CTEST_BINARY_DIRECTORY}")
-  message("Clearing build tree...")
-  ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
-endif()
-
-set(dashboard_continuous 0)
-if("${dashboard_model}" STREQUAL "Continuous")
-  set(dashboard_continuous 1)
-endif()
-
-if(COMMAND dashboard_hook_init)
-  dashboard_hook_init()
-endif()
-
-set(dashboard_done 0)
-while(NOT dashboard_done)
-  if(dashboard_continuous)
-    set(START_TIME ${CTEST_ELAPSED_TIME})
-  endif()
-
-  # Start a new submission.
-  if(COMMAND dashboard_hook_start)
-    dashboard_hook_start()
-  endif()
-  ctest_start(${dashboard_model})
-  set(CTEST_CHECKOUT_COMMAND) # checkout on first iteration only
-
-  # Always build if the tree is fresh.
-  set(dashboard_fresh 0)
-  if(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
-    set(dashboard_fresh 1)
-    message("Starting fresh build...")
-    write_CMakeCache()
-  endif()
-
-  # Look for updates.
-  if(EXISTS "${dashboard_M_dir}")
-    dashboard_update_M()
-  endif()
-  ctest_update(RETURN_VALUE count)
-
-  message("Found ${count} changed files")
-  if(dashboard_fresh OR NOT dashboard_continuous OR count GREATER 0)
-    ctest_configure()
-
-    # Load CTestCustom.cmake to get CTEST_BUILD_COMMAND computed
-    # during configuration.
-    ctest_read_custom_files(${CTEST_BINARY_DIRECTORY})
-
-    if(COMMAND dashboard_hook_build)
-      dashboard_hook_build()
-    endif()
-    ctest_build()
-    if(COMMAND dashboard_hook_test)
-      dashboard_hook_test()
-    endif()
-    ctest_test(${CTEST_TEST_ARGS})
-
-    if(dashboard_do_coverage)
-      ctest_coverage()
-    endif()
-    if(dashboard_do_memcheck)
-      ctest_memcheck()
-    endif()
-    dashboard_ctest_submit()
-    if(COMMAND dashboard_hook_end)
-      dashboard_hook_end()
+# set up the dashboard OTJ submission
+macro(dashboard_otj_build)
+  if(EXISTS "${OTJ_BUILD_CMAKE_FILE}")
+    execute_process(COMMAND "${CMAKE_COMMAND}" -P "${OTJ_BUILD_CMAKE_FILE}"
+                    RESULT_VARIABLE retCode
+                    OUTPUT_VARIABLE output)
+    if(retCode)
+      message(WARNING "Error running ${OTJ_BUILD_CMAKE_FILE}: ${output}")
     endif()
   endif()
+endmacro()
 
-  if(dashboard_continuous)
-    # Delay until at least 5 minutes past START_TIME
-    ctest_sleep(${START_TIME} 300 ${CTEST_ELAPSED_TIME})
-    if(${CTEST_ELAPSED_TIME} GREATER 57600)
+macro(dashboard_run_VistA)
+  # Start with a fresh build tree.
+  file(MAKE_DIRECTORY "${CTEST_BINARY_DIRECTORY}")
+  if(NOT "${CTEST_SOURCE_DIRECTORY}" STREQUAL "${CTEST_BINARY_DIRECTORY}")
+    message("Clearing build tree...")
+    ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
+  endif()
+
+  set(dashboard_continuous 0)
+  if("${dashboard_model}" STREQUAL "Continuous")
+    set(dashboard_continuous 1)
+  endif()
+
+  if(COMMAND dashboard_hook_init)
+    dashboard_hook_init()
+  endif()
+
+  set(dashboard_done 0)
+  while(NOT dashboard_done)
+    if(dashboard_continuous)
+      set(START_TIME ${CTEST_ELAPSED_TIME})
+    endif()
+
+    # Start a new submission.
+    if(COMMAND dashboard_hook_start)
+      dashboard_hook_start()
+    endif()
+    ctest_start(${dashboard_model})
+    set(CTEST_CHECKOUT_COMMAND) # checkout on first iteration only
+
+    # Always build if the tree is fresh.
+    set(dashboard_fresh 0)
+    if(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
+      set(dashboard_fresh 1)
+      message("Starting fresh build...")
+      write_CMakeCache()
+    endif()
+
+    # Look for updates.
+    if(EXISTS "${dashboard_M_dir}")
+      dashboard_update_M()
+    endif()
+    ctest_update(RETURN_VALUE count)
+
+    message("Found ${count} changed files")
+    if(dashboard_fresh OR NOT dashboard_continuous OR count GREATER 0)
+      ctest_configure()
+
+      # Load CTestCustom.cmake to get CTEST_BUILD_COMMAND computed
+      # during configuration.
+      ctest_read_custom_files(${CTEST_BINARY_DIRECTORY})
+
+      if(COMMAND dashboard_hook_build)
+        dashboard_hook_build()
+      endif()
+      ctest_build()
+      # prepare for OTJ submission
+      dashboard_otj_build()
+      if(COMMAND dashboard_hook_test)
+        dashboard_hook_test()
+      endif()
+      ctest_test(${CTEST_TEST_ARGS})
+
+      if(dashboard_do_coverage)
+        ctest_coverage()
+      endif()
+      if(dashboard_do_memcheck)
+        ctest_memcheck()
+      endif()
+      dashboard_ctest_submit()
+      if(COMMAND dashboard_hook_end)
+        dashboard_hook_end()
+      endif()
+    endif()
+
+    if(dashboard_continuous)
+      # Delay until at least 5 minutes past START_TIME
+      ctest_sleep(${START_TIME} 300 ${CTEST_ELAPSED_TIME})
+      if(${CTEST_ELAPSED_TIME} GREATER 57600)
+        set(dashboard_done 1)
+      endif()
+    else()
+      # Not continuous, so we are done.
       set(dashboard_done 1)
     endif()
-  else()
-    # Not continuous, so we are done.
-    set(dashboard_done 1)
-  endif()
-endwhile()
+  endwhile()
+endmacro()
+
+# run the main dashboard
+dashboard_run_VistA()
+
+# run the OTJ_Submission if available
+# switch to experimental mode to test OTJ submission
+set(dashboard_mode Experimental)
+set(dashboard_build_name ${CTEST_BUILD_NAME})
+
+if(TEST_VISTA_OTJ_SUBMISSION)
+  file(GLOB OTJ_CMAKE_FILES "${CTEST_BINARY_DIRECTORY}/OTJ/OTJ*.cmake")
+  foreach (OTJ_CMAKE_FILE ${OTJ_CMAKE_FILES})
+    get_filename_component(OTJ_BUILD_CMAKE_FILE "${OTJ_CMAKE_FILE}" ABSOLUTE)
+    get_filename_component(OTJ_BUILD_CMAKE_NAME "${OTJ_CMAKE_FILE}" NAME_WE)
+    set(CTEST_BUILD_NAME "${OTJ_BUILD_CMAKE_NAME}_${dashboard_build_name}")
+    dashboard_run_VistA()
+  endforeach()
+endif()
