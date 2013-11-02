@@ -18,6 +18,10 @@ from __future__ import with_statement
 import sys
 import os
 import argparse
+# setup system path
+filedir = os.path.dirname(os.path.abspath(__file__))
+test_python_dir = os.path.normpath(os.path.join(filedir, "../Testing/Python/"))
+sys.path.append(test_python_dir)
 from VistATestClient import VistATestClientFactory, createTestClientArgParser
 from LoggerManager import initConsoleLogging
 
@@ -58,7 +62,52 @@ def initFileMan(testClient, siteName, siteNumber, zuSet=True):
     testClient.waitForPrompt()
   connection.send("HALT\r")
 
-DEFAULT_OUTPUT_LOG_FILE_NAME = "InitTaskMan.log"
+def inhibitLogons(testClient):
+  pass
+
+def deleteFileManRoutines():
+  """ first get routine directory """
+  from ParseGTMRoutines import extract_m_source_dirs
+  var = os.getenv('gtmroutines')
+  routineDirs = extract_m_source_dirs(var)
+  if not routineDirs:
+    return []
+  import glob
+  outDir = []
+  for routineDir in routineDirs:
+    for pattern in ['DI*.m', 'DD*.m', 'DM*.m']:
+      globPtn = os.path.join(routineDir, pattern)
+      fmFiles = glob.glob(os.path.join(routineDir, pattern))
+      if fmFiles:
+        outDir.append(routineDir)
+        for fmFile in fmFiles:
+          print "removing file %s" % fmFile
+          #os.remove(fmFile)
+  return outDir
+
+def verifyRoutines(testClient):
+  pass
+
+def initFileMan22_2(testClient, inputROFile):
+  """
+    Script to initiate FileMan 22.2
+  """
+  from VistATaskmanUtil import VistATaskmanUtil
+  # stop all taskman tasks
+  taskManUtil = VistATaskmanUtil()
+  #taskManUtil.shutdownAllTasks()
+  # remove fileman 22.2 affected routines
+  outDir = deleteFileManRoutines()
+  # import routines into System
+  from VistARoutineImport import VistARoutineImport
+  vistARtnImport = VistARoutineImport()
+  #vistARtnImport.importRoutines(testClient, inputROFile, outDir)
+  # verify integrity of the routines that just imported
+  verifyRoutines(testClient)
+  """ restart taskman """
+  #taskManUtil.startTaskman()
+
+DEFAULT_OUTPUT_LOG_FILE_NAME = "VistAInitFileMan.log"
 import tempfile
 def getTempLogFile():
     return os.path.join(tempfile.gettempdir(), DEFAULT_OUTPUT_LOG_FILE_NAME)
@@ -67,10 +116,12 @@ def main():
   testClientParser = createTestClientArgParser()
   parser = argparse.ArgumentParser(description='VistA Initialize FileMan Utilities',
                                    parents=[testClientParser])
-  parser.add_argument('-s', ='siteName',
+  parser.add_argument('-s', '--siteName',
                       help='setup the site name')
-  parser.add_argument('-n', required=True, dest="stationNumber", type=int,
+  parser.add_argument('-n', '--stationNumber', type=int,
                       help="setup the station number")
+  parser.add_argument('-ro', '--roFile',
+                      help="routine import file in ro format")
   result = parser.parse_args();
   print (result)
   """ create the VistATestClient"""
@@ -80,7 +131,7 @@ def main():
     logFilename = getTempLogFile()
     print "Log File is %s" % logFilename
     vistAClient.setLogFile(logFilename)
-    initFileMan(vistAClient, siteName, siteNumber)
+    initFileMan22_2(vistAClient, result.roFile)
 
 if __name__ == '__main__':
   main()
