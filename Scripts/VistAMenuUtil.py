@@ -14,6 +14,10 @@
 # limitations under the License.
 #---------------------------------------------------------------------------
 
+import re
+# constant for reuse
+DD_OUTPUT_FROM_WHAT_FILE = re.compile("OUTPUT FROM WHAT FILE:", re.I)
+
 """
   Utilitity Class to access VistA Menus System
 """
@@ -201,27 +205,27 @@ class VistAMenuUtil(object):
     connection.send("\r")
     vistAClient.waitForPrompt()
     connection.send("\r")
-
+  
   def gotoFileManEditEnterEntryMenu(self, vistAClient):
     connection = vistAClient.getConnection()
     self.gotoFileManMenu(vistAClient)
     connection.send("1\r" )# enter or edit entry
-    connection.expect("OUTPUT FROM WHAT FILE:")
+    connection.expect(DD_OUTPUT_FROM_WHAT_FILE)
 
   def gotoFileManPrintFileEntryMenu(self, vistAClient):
     connection = vistAClient.getConnection()
     self.gotoFileManMenu(vistAClient)
     connection.send("2\r" ) # print file entry
-    connection.expect("OUTPUT FROM WHAT FILE:")
+    connection.expect(DD_OUTPUT_FROM_WHAT_FILE)
 
   def gotoFileManSearchFileEntryMenu(self, vistAClient):
     connection = vistAClient.getConnection()
     self.gotoFileManMenu(vistAClient)
     connection.send("3\r") # search file entry
-    connection.expect("OUTPUT FROM WHAT FILE:")
+    connection.expect(DD_OUTPUT_FROM_WHAT_FILE)
 
   def gotoFileManInquireFileEntryMenu(self, vistAClient):
     connection = vistAClient.getConnection()
     self.gotoFileManMenu(vistAClient)
     connection.send("5\r" ) # inquiry file entry
-    connection.expect("OUTPUT FROM WHAT FILE:")
+    connection.expect(DD_OUTPUT_FROM_WHAT_FILE)
