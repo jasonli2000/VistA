@@ -86,7 +86,23 @@ def initFileMan22_2(testClient):
 def inhibitLogons(testClient):
   pass
 
-def deleteFileManRoutines():
+def deleteFileManRoutinesCache(testClient):
+  testClient.waitForPrompt()
+  conn = testClient.getConnection()
+  conn.send('D ^%ZTRDEL\r')
+  conn.expect('All Routines\? ')
+  conn.send('No\r')
+  for input in ("DI*", "'DIZ*", "DM*", "'DMZ*", "DD*", "'DDZ*"):
+    conn.expect('Routine: ')
+    conn.send(input+'\r')
+  conn.expect('Routine: ')
+  conn.send('\r')
+  conn.expect('routines to DELETE, OK: ')
+  conn.send('YES\r')
+  testClient.waitForPrompt()
+  conn.send('\r')
+
+def deleteFileManRoutinesGTM():
   """ first get routine directory """
   from ParseGTMRoutines import extract_m_source_dirs
   var = os.getenv('gtmroutines')
@@ -114,7 +130,15 @@ def verifyRoutines(testClient):
   testClient.waitForPrompt()
   conn.send('\r')
 
-def rewriteFileManRoutine(outDir):
+def rewriteFileManRoutineCache(testClient):
+  testClient.waitForPrompt()
+  conn = testClient.getConnection()
+  for filename in ['DIDT','DIDTC','DIRCR']:
+    conn.send('ZL %s ZS %s' % (filename, filename.repace('DI','%')))
+    testClient.waitForPrompt()
+  conn.send('\r')
+
+def rewriteFileManRoutineGTM(outDir):
   import shutil
   for filename in ['DIDT','DIDTC','DIRCR']:
     src = os.path.join(outDir, filename + ".m")
@@ -127,30 +151,37 @@ def installFileMan22_2(testClient, inputROFile):
     Script to initiate FileMan 22.2
   """
   from VistATaskmanUtil import VistATaskmanUtil
+  outDir = None # gtm routine import out dir
   # stop all taskman tasks
   taskManUtil = VistATaskmanUtil()
-  #taskManUtil.shutdownAllTasks(testClient)
+  taskManUtil.shutdownAllTasks(testClient)
   # remove fileman 22.2 affected routines
-  outDir = deleteFileManRoutines()
-  if not outDir: 
-    print "Can not identify mumps routine directory"
-    return
-  print outDir
+  if testClient.isCache():
+    deleteFileManRoutinesCache()
+  else:
+    outDir = deleteFileManRoutinesGTM()
+    if not outDir: 
+      print "Can not identify mumps routine directory"
+      return
+    outDir = outDir[0]
   # import routines into System
   from VistARoutineImport import VistARoutineImport
   vistARtnImport = VistARoutineImport()
-  vistARtnImport.importRoutines(testClient, inputROFile, outDir[0])
+  vistARtnImport.importRoutines(testClient, inputROFile, outDir)
   # verify integrity of the routines that just imported
   verifyRoutines(testClient)
   # rewrite fileman routines
-  rewriteFileManRoutine(outDir[0])
+  if testClient.isCache():
+    rewriteFileManRoutineCache(testClient)
+  else:
+    rewriteFileManRoutineGTM(outDir)
   # initial fileman
   print "Initial FileMan..."
   initFileMan(testClient, None, None, zuSet=False)
   print "Initial FileMan 22.2..."
   initFileMan22_2(testClient)
   """ restart taskman """
-  #taskManUtil.startTaskman(testClient)
+  taskManUtil.startTaskman(testClient)
 
 DEFAULT_OUTPUT_LOG_FILE_NAME = "VistAInitFileMan.log"
 import tempfile
