@@ -663,7 +663,8 @@ def parsePatchInstallDatetime(dtString):
     dtStr = convertAbbreviatedMonth(dtString)
     try:
       if dtStr.find(date_time_seperator) < 0:
-        fmtStr = fmtStr[0:fmtStr.find(date_time_seperator)]
+        if fmtStr.find(date_time_seperator) >= 0:
+          fmtStr = fmtStr[0:fmtStr.find(date_time_seperator)]
       outDatetime = datetime.strptime(dtStr, fmtStr)
     except ValueError, ve:
       pass
