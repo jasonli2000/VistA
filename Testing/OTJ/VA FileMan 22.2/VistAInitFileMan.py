@@ -20,8 +20,10 @@ import os
 import argparse
 # setup system path
 filedir = os.path.dirname(os.path.abspath(__file__))
-test_python_dir = os.path.normpath(os.path.join(filedir, "../Testing/Python/"))
+test_python_dir = os.path.normpath(os.path.join(filedir, "../../Python/"))
+scripts_python_dir = os.path.normpath(os.path.join(filedir, "../../../Scripts"))
 sys.path.append(test_python_dir)
+sys.path.append(scripts_python_dir)
 from VistATestClient import VistATestClientFactory, createTestClientArgParser
 from LoggerManager import initConsoleLogging
 
@@ -50,17 +52,36 @@ def initFileMan(testClient, siteName, siteNumber, zuSet=True):
     connection.send(str(siteNumber)+"\r")
   else:
     connection.send("\r")
-  connection.expect("Do you want to change the MUMPS OPERATING SYSTEM File?")
-  connection.send("YES\r") # we want to change MUMPS OPERATING SYSTEM File
-  connection.expect("TYPE OF MUMPS SYSTEM YOU ARE USING:")
-  inputMumpsSystem(testClient)
+  selLst = [
+             "Do you want to change the MUMPS OPERATING SYSTEM File?",
+             "TYPE OF MUMPS SYSTEM YOU ARE USING:",
+           ]
+  while True:
+    idx = connection.expect(selLst)
+    if idx == 0:
+      connection.send("YES\r") # we want to change MUMPS OPERATING SYSTEM File
+      continue
+    elif idx == len(selLst) - 1:
+      inputMumpsSystem(testClient)
+      break
   testClient.waitForPrompt()
   if zuSet:
     connection.send("D ^ZUSET\r")
     connection.expect("Rename")
     connection.send("YES\r")
     testClient.waitForPrompt()
-  connection.send("HALT\r")
+  connection.send('\r')
+
+def initFileMan22_2(testClient):
+  testClient.waitForPrompt()
+  conn = testClient.getConnection()
+  conn.send('D ^DIINIT\r')
+  conn.expect('ARE YOU SURE EVERYTHING\'S OK\? ')
+  conn.send('YES\r')
+  testClient.waitForPrompt()
+  conn.send('D ^DMLAINIT\r')
+  testClient.waitForPrompt()
+  conn.send('\r')
 
 def inhibitLogons(testClient):
   pass
@@ -73,39 +94,63 @@ def deleteFileManRoutines():
   if not routineDirs:
     return []
   import glob
-  outDir = []
+  outDir = routineDirs[0:1]
   for routineDir in routineDirs:
     for pattern in ['DI*.m', 'DD*.m', 'DM*.m']:
       globPtn = os.path.join(routineDir, pattern)
       fmFiles = glob.glob(os.path.join(routineDir, pattern))
       if fmFiles:
-        outDir.append(routineDir)
+        if routineDir not in outDir:
+          outDir.append(routineDir)
         for fmFile in fmFiles:
           print "removing file %s" % fmFile
-          #os.remove(fmFile)
+          os.remove(fmFile)
   return outDir
 
 def verifyRoutines(testClient):
-  pass
+  testClient.waitForPrompt()
+  conn = testClient.getConnection()
+  conn.send('D ^DINTEG\r')
+  testClient.waitForPrompt()
+  conn.send('\r')
 
-def initFileMan22_2(testClient, inputROFile):
+def rewriteFileManRoutine(outDir):
+  import shutil
+  for filename in ['DIDT','DIDTC','DIRCR']:
+    src = os.path.join(outDir, filename + ".m")
+    dst = os.path.join(outDir, filename.replace('DI','_') + '.m')
+    print "Copy %s to %s" % (src, dst)
+    shutil.copyfile(src, dst)
+
+def installFileMan22_2(testClient, inputROFile):
   """
     Script to initiate FileMan 22.2
   """
   from VistATaskmanUtil import VistATaskmanUtil
   # stop all taskman tasks
   taskManUtil = VistATaskmanUtil()
-  #taskManUtil.shutdownAllTasks()
+  #taskManUtil.shutdownAllTasks(testClient)
   # remove fileman 22.2 affected routines
   outDir = deleteFileManRoutines()
+  if not outDir: 
+    print "Can not identify mumps routine directory"
+    return
+  print outDir
   # import routines into System
   from VistARoutineImport import VistARoutineImport
   vistARtnImport = VistARoutineImport()
-  #vistARtnImport.importRoutines(testClient, inputROFile, outDir)
+  vistARtnImport.importRoutines(testClient, inputROFile, outDir[0])
   # verify integrity of the routines that just imported
   verifyRoutines(testClient)
+  # rewrite fileman routines
+  rewriteFileManRoutine(outDir[0])
+  # initial fileman
+  print "Initial FileMan..."
+  initFileMan(testClient, None, None, zuSet=False)
+  print "Initial FileMan 22.2..."
+  initFileMan22_2(testClient)
   """ restart taskman """
-  #taskManUtil.startTaskman()
+  #taskManUtil.startTaskman(testClient)
 
 DEFAULT_OUTPUT_LOG_FILE_NAME = "VistAInitFileMan.log"
 import tempfile
@@ -131,7 +176,7 @@ def main():
     logFilename = getTempLogFile()
     print "Log File is %s" % logFilename
     vistAClient.setLogFile(logFilename)
-    initFileMan22_2(vistAClient, result.roFile)
+    installFileMan22_2(vistAClient, result.roFile)
 
 if __name__ == '__main__':
   main()

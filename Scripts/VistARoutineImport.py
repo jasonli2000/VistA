@@ -67,8 +67,9 @@ class VistARoutineImport(object):
     if vistATestClient.isCache():
       self.__importRoutineCache__(connection, absRtnImportFile)
     elif vistATestClient.isGTM():
+      absRtnOutDir = os.path.normpath(os.path.abspath(routineOutputDir))
       self.__importRoutineGTM__(connection, absRtnImportFile,
-                                routineOutputDir)
+                                os.path.join(absRtnOutDir, ""))
     vistATestClient.waitForPrompt(timeout)
     connection.send('\r')
 
