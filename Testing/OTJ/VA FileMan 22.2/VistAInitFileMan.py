@@ -158,7 +158,7 @@ def rewriteFileManRoutineCache(testClient):
   testClient.waitForPrompt()
   conn = testClient.getConnection()
   for filename in ['DIDT','DIDTC','DIRCR']:
-    conn.send('ZL %s ZS %s' % (filename, filename.repace('DI','%')))
+    conn.send('ZL %s ZS %s\r' % (filename, filename.replace('DI','%')))
     testClient.waitForPrompt()
   conn.send('\r')
 
@@ -176,12 +176,18 @@ def installFileMan22_2(testClient, inputROFile):
   """
   from VistATaskmanUtil import VistATaskmanUtil
   outDir = None # gtm routine import out dir
+  #allow logon to shutdown taskman via menu
+  inhibitLogons(testClient, flag=False)
   # stop all taskman tasks
   taskManUtil = VistATaskmanUtil()
+  print "Shutdown All Tasks..."
   taskManUtil.shutdownAllTasks(testClient)
+  print "Inhibit logons..."
+  inhibitLogons(testClient)
   # remove fileman 22.2 affected routines
+  print "Remove FileMan 22 routines"
   if testClient.isCache():
-    deleteFileManRoutinesCache()
+    deleteFileManRoutinesCache(testClient)
   else:
     outDir = deleteFileManRoutinesGTM()
     if not outDir: 
@@ -191,10 +197,13 @@ def installFileMan22_2(testClient, inputROFile):
   # import routines into System
   from VistARoutineImport import VistARoutineImport
   vistARtnImport = VistARoutineImport()
+  print "Import FileMan 22.2 Routines from %s" % inputROFile
   vistARtnImport.importRoutines(testClient, inputROFile, outDir)
   # verify integrity of the routines that just imported
+  print "Verify FileMan 22.2 Routines..."
   verifyRoutines(testClient)
   # rewrite fileman routines
+  print "Rewrite FileMan 22.2 Routines..."
   if testClient.isCache():
     rewriteFileManRoutineCache(testClient)
   else:
@@ -204,6 +213,8 @@ def installFileMan22_2(testClient, inputROFile):
   initFileMan(testClient, None, None, zuSet=False)
   print "Initial FileMan 22.2..."
   initFileMan22_2(testClient)
+  print "Enable logons..."
+  inhibitLogons(testClient, flag=False)
   """ restart taskman """
   taskManUtil.startTaskman(testClient)
 
