@@ -17,6 +17,7 @@
 import re
 # constant for reuse
 DD_OUTPUT_FROM_WHAT_FILE = re.compile("OUTPUT FROM WHAT FILE:", re.I)
+DD_INPUT_TO_WHAT_FILE = re.compile("INPUT TO WHAT FILE:", re.I)
 
 """
   Utilitity Class to access VistA Menus System
@@ -210,7 +211,7 @@ class VistAMenuUtil(object):
     connection = vistAClient.getConnection()
     self.gotoFileManMenu(vistAClient)
     connection.send("1\r" )# enter or edit entry
-    connection.expect(DD_OUTPUT_FROM_WHAT_FILE)
+    connection.expect(DD_INPUT_TO_WHAT_FILE)
 
   def gotoFileManPrintFileEntryMenu(self, vistAClient):
     connection = vistAClient.getConnection()

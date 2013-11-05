@@ -83,16 +83,36 @@ def initFileMan22_2(testClient):
   testClient.waitForPrompt()
   conn.send('\r')
 
-def inhibitLogons(testClient):
-  pass
+def inhibitLogons(testClient, flag=True):
+  from VistAMenuUtil import VistAMenuUtil
+  from VistATaskmanUtil import getBoxVolPair
+  volumeSet = getBoxVolPair(testClient).split(':')[0]
+  menuUtil = VistAMenuUtil(duz=1)
+  menuUtil.gotoFileManEditEnterEntryMenu(testClient)
+  conn = testClient.getConnection()
+  conn.send('14.5\r') # 14.5 is the VOLUME SET File
+  conn.expect('EDIT WHICH FIELD: ')
+  conn.send('1\r') # field Inhibit Logons?
+  conn.expect('THEN EDIT FIELD: ')
+  conn.send('\r')
+  conn.expect('Select VOLUME SET: ')
+  conn.send('%s\r' % volumeSet)
+  conn.expect('INHIBIT LOGONS\?: ')
+  if flag:
+    conn.send('YES\r')
+  else:
+    conn.send('NO\r')
+  conn.expect('Select VOLUME SET: ')
+  conn.send('\r')
+  menuUtil.exitFileManMenu(testClient)
 
 
 def stopAllMumpsProcessGTM():
   pass
 
 def deleteFileManRoutinesCache(testClient):
-  testClient.waitForPrompt()
   conn = testClient.getConnection()
+  testClient.waitForPrompt()
   conn.send('D ^%ZTRDEL\r')
   conn.expect('All Routines\? ')
   conn.send('No\r')
