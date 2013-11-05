@@ -14,6 +14,7 @@
 *.kid           -whitespace
 *.TXTs          -whitespace
 *.TXT           -whitespace
+*.RSA           -whitespace
 
 # Restore checks in some files otherwise disabled above.
 CMakeLists.txt   whitespace=tab-in-indent
