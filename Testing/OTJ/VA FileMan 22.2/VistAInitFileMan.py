@@ -86,6 +86,10 @@ def initFileMan22_2(testClient):
 def inhibitLogons(testClient):
   pass
 
+
+def stopAllMumpsProcessGTM():
+  pass
+
 def deleteFileManRoutinesCache(testClient):
   testClient.waitForPrompt()
   conn = testClient.getConnection()
