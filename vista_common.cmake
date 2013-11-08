@@ -467,12 +467,11 @@ endmacro()
 dashboard_run_VistA()
 
 # run the OTJ_Submission if available
-# switch to experimental mode to test OTJ submission
-set(dashboard_mode Experimental)
-set(dashboard_build_name ${CTEST_BUILD_NAME})
-
 if(TEST_VISTA_OTJ_SUBMISSION)
   file(GLOB OTJ_CMAKE_FILES "${CTEST_BINARY_DIRECTORY}/OTJ/OTJ*.cmake")
+  # switch to experimental mode to test OTJ submission
+  set(dashboard_model Experimental)
+  set(dashboard_build_name ${CTEST_BUILD_NAME})
   foreach (OTJ_CMAKE_FILE ${OTJ_CMAKE_FILES})
     get_filename_component(OTJ_BUILD_CMAKE_FILE "${OTJ_CMAKE_FILE}" ABSOLUTE)
     get_filename_component(OTJ_BUILD_CMAKE_NAME "${OTJ_CMAKE_FILE}" NAME_WE)
