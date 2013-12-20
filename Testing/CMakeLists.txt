@@ -96,9 +96,7 @@ file(MAKE_DIRECTORY "${UNITTEST_LOG_DIR}")
 
 if(GTM_DIST)
   include(UseGTM)
-endif()
-
-if(CCONTROL_EXECUTABLE)
+elseif(CCONTROL_EXECUTABLE)
   include(UseCache)
 endif()
 
