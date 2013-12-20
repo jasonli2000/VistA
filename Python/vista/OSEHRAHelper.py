@@ -537,12 +537,15 @@ def ConnectToMUMPS(logfile, instance='CACHE', namespace='VISTA', location='127.0
     elif sys.platform == 'linux2':
       if no_pexpect:
         raise no_pexpect
-      try:
-        return ConnectLinuxCache(logfile, instance, namespace, location)
-      except pexpect.ExceptionPexpect, no_cache:
-        pass
-      try:
-        return ConnectLinuxGTM(logfile, instance, namespace, location)
-      except pexpect.ExceptionPexpect, no_gtm:
-         if (no_cache and no_gtm):
+      if os.getenv('gtm_dist'):
+        try:
+          return ConnectLinuxGTM(logfile, instance, namespace, location)
+        except pexpect.ExceptionPexpect, no_gtm:
+           if (no_gtm):
+             raise "Cannot find a MUMPS instance"
+      else:
+        try:
+          return ConnectLinuxCache(logfile, instance, namespace, location)
+        except pexpect.ExceptionPexpect, no_cache:
+         if (no_cache):
            raise "Cannot find a MUMPS instance"
