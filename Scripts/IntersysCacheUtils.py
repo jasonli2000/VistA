@@ -20,6 +20,7 @@ import subprocess
 import re
 import argparse
 from LoggerManager import logger, initConsoleLogging
+import logging
 
 CACHE_DATA_FILE = 'CACHE.DAT'
 #---------------------------------------------------------------------------
@@ -98,6 +99,44 @@ def isInstanceRunning(instanceName):
   except OSError as ex:
     print ex
   return False
+"""
+  dismount/mount a local database via InterSystem Cache ^DATABASE call
+"""
+def dismountLocalDatabase(dbFilePath, testClient):
+  # convert dbFilePath to abspath
+  return _mountLocalDatabaseCommon(dbFilePath, testClient, True)
+
+def mountLocalDatabase(dbFilePath, testClient):
+  # convert dbFilePath to abspath
+  return _mountLocalDatabaseCommon(dbFilePath, testClient, False)
+
+def _mountLocalDatabaseCommon(dbFilePath, testClient, isDismount):
+  # convert dbFilePath to abspath
+  absDbFilePath = os.path.abspath(dbFilePath)
+  testClient.waitForPrompt()
+  conn = testClient.getConnection()
+  conn.send('D ^DATABASE\r')
+  conn.expect('Option\? ')
+  if isDismount:
+    conn.send('6\r')
+  else:
+    conn.send('5\r')
+  conn.expect('mount\? ')
+  conn.send(os.path.normpath(absDbFilePath)+ '\r')
+  conn.expect('mount of databases\? ')
+  conn.send('Yes\r')
+  if not isDismount:
+    conn.expect('Read Only\? ')
+    conn.send('\r')
+  conn.expect('mounted')
+  conn.expect('mount\? ')
+  conn.send('\r')
+  conn.expect('Option\? ')
+  conn.send('\r')
+  testClient.waitForPrompt()
+  conn.send('\r')
+  return True
+
 """
   restore Cache data file for Cache Instance provided
   @instanceName: Cache instance name to restore
@@ -228,9 +267,27 @@ def testExtract():
   destDir = '/tmp'
   extractBZIP2Tarball(bzipFile, destDir)
 
+def testMountDisMountLocalDb():
+  from VistATestClient import createTestClientArgParser
+  from VistATestClient import VistATestClientFactory
+
+  testClientParser = createTestClientArgParser()
+  parser = argparse.ArgumentParser(description='InterSystem Cache Mount Dismount Test',
+                                   parents=[testClientParser])
+  parser.add_argument('-p', '--dirPath', required=True,
+                      help='Enter the name of the directory path for the local database')
+  result = parser.parse_args();
+  print result
+  testClient = VistATestClientFactory.createVistATestClientWithArgs(result)
+  with testClient:
+    logging.info('Dismount LocalDB: %s' % result.dirPath)
+    dismountLocalDatabase(result.dirPath, testClient)
+    logging.info('mount LocalDB: %s' % result.dirPath)
+    mountLocalDatabase(result.dirPath, testClient)
+
 def main():
   initConsoleLogging()
-  pass
+  testMountDisMountLocalDb()
 
 if __name__ == '__main__':
   main()
