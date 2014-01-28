@@ -298,9 +298,54 @@ def testMountDisMountLocalDb():
       logging.info('mount LocalDB: %s' % result.dirPath)
       mountLocalDatabase(result.dirPath, testClient)
 
+def vistACustomInit(instance, namespace, initialData, destData, testClient):
+  """ Start InterSystem Cache Instance if it is not up """
+  if not isInstanceRunning(instance):
+    startCache(instance)
+  if not os.path.exists(initialData):
+    logging.error("inital data: %s does not exist!" % initialData)
+    return -1
+  if not os.path.exists(destData):
+    logging.error("destination data: %s does not exist!" % destData)
+    return -2
+  retValue = -3
+  dbDirPath = os.path.normpath(os.path.abspath(os.path.dirname(destData)))
+  try:
+    """ dismount the local database """
+    logging.info("Dismounting local db: %s" % dbDirPath)
+    dismountLocalDatabase(dbDirPath, testClient)
+    """ Copy the file over and preserve the permission """
+    import shutil
+    logging.info("overwriting local db: %s with %s" % (destData, initialData))
+    shutil.copy2(initialData, destData)
+    retValue = 0
+  finally:
+    """ mount the local database """
+    logging.info("Mounting local db: %s" % dbDirPath)
+    mountLocalDatabase(dbDirPath, testClient)
+  return retValue
+
+def testVistACustomInit():
+  from VistATestClient import createTestClientArgParser
+  from VistATestClient import VistATestClientFactory
+  testClientParser = createTestClientArgParser()
+  parser = argparse.ArgumentParser(description='InterSystem Cache VistA Custom Init Script',
+                                   parents=[testClientParser])
+  parser.add_argument('-p', '--dirPath', required=True,
+                      help='Enter directory path for the local database')
+  parser.add_argument('-i', '--initData', required=True,
+                      help='path to initial VistA CACHE.DAT file')
+  result = parser.parse_args();
+  print result
+  testClient = VistATestClientFactory.createVistATestClientWithArgs(result)
+  with testClient:
+    destData = os.path.join(result.dirPath, CACHE_DATA_FILE)
+    vistACustomInit(result.instance, result.namespace,
+                    result.initData, destData, testClient)
+
 def main():
   initConsoleLogging()
-  testMountDisMountLocalDb()
+  testVistACustomInit()
 
 if __name__ == '__main__':
   main()
