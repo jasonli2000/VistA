@@ -269,6 +269,7 @@ def exportAllClassesIndividual(testClient, destDir, diffexport=True):
                   % (dest, qualifier))
   testClient.waitForPrompt()
   logging.info(connection.before)
+  connection.send('\r')
 """
   Utility function to Import all Intersystem classes.
   @testClient, an instance of VistATestClient, in ready state
@@ -282,6 +283,7 @@ def importDir(testClient, srcDir):
   connection.send('W $SYSTEM.OBJ.ImportDir("%s",,"%s")\r' % (src, qualifier))
   testClient.waitForPrompt()
   logging.info(connection.before)
+  connection.send('\r')
 
 """ -------- TEST CODE SECTION -------- """
 def testBackup():

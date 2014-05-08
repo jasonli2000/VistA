@@ -33,10 +33,11 @@ from LoggerManager import logger, initConsoleLogging, initFileLogging
 from VistATaskmanUtil import VistATaskmanUtil
 from MCompReposReadMeGenerator import MCompReposReadMeGenerator
 from GitUtils import switchBranch, getStatus
+from IntersysCacheUtils import exportAllClassesIndividual
 
 """ List of routine names that are excluded from export process """
 ROUTINE_EXTRACT_EXCLUDE_LIST = (
-   "ZGO", "ZGI", "xobw.*", "%*",
+   "ZGO", "ZGI", "xobw.*", "%*", "MPIP*",
    "CHK2LEV", "CHKOP", "GENDASH", "GENOUT",
    "GETPASS", "GTMHELP", "GTMHLPLD", "LOADOP",
    "LOADVX", "MSG", "PINENTRY", "TTTGEN",
@@ -63,25 +64,31 @@ class VistADataExtractor:
     assert os.path.exists(self._packagesCSV)
     self._routineOutputFile = os.path.join(self._outputResultDir, "Routines.ro")
     self._globalOutputDir = os.path.join(self._outputResultDir, "Globals")
+    self._cacheclassesDir = os.path.join(self._outputResultDir, "Classes")
     if not os.path.exists(self._globalOutputDir):
       os.mkdir(self._globalOutputDir)
+    if not os.path.exists(self._cacheclassesDir):
+      os.mkdir(self._cacheclassesDir)
     if routineOutDir:
       assert os.path.exists(routineOutDir)
     self._routineOutDir = routineOutDir
     self._generateReadMe = generateReadMe
     self._gitBranch = gitBranch
   def extractData(self, vistATestClient):
+    self._cache = vistATestClient.isCache()
     self.__setupLogging__(vistATestClient)
     self.__switchBranch__()
     self.__stopTaskman__(vistATestClient)
     self.__extractRoutines__(vistATestClient)
     self.__importZGORoutine__(vistATestClient)
     self.__exportAllGlobals__(vistATestClient)
+    self.__exportAllCacheClasses__(vistATestClient)
     self.__chmodGlobalOutput__()
     self.__removePackagesTree__()
     self.__unpackRoutines__()
     self.__copyAllGlobals__()
     self.__splitGlobalFiles__()
+    self.__copyAllClasses__()
     self.__populatePackageFiles__()
     self.__generatePackageReadMes__()
     self.__reportGitStatus__()
@@ -129,11 +136,24 @@ class VistADataExtractor:
     vistAGlobalExport = VistAGlobalExport()
     vistAGlobalExport.exportAllGlobals(vistATestClient, self._globalOutputDir)
 
+  def __exportAllCacheClasses__(self, vistATestClient):
+    if not vistATestClient.isCache():
+      """ only works for Intersystem Cache """
+      return
+    """ remove all the xml files first """
+    logger.info("Remove all xml files under %s" % self._cacheclassesDir)
+    for file in glob.glob(os.path.join(self._globalOutputDir, "*.xml")):
+      os.remove(file)
+    exportAllClassesIndividual(vistATestClient, self._cacheclassesDir)
+
   def __removePackagesTree__(self):
     logger.info("Removing all files under %s" % self._packagesDir)
     for dirEntry in os.listdir(self._packagesDir):
       if dirEntry == ".gitattributes": # ignore the .gitattributes
         continue
+      if not self._cache: # keep the Classes files
+        if dirEntry == 'Classes':
+          continue
       fullPath = os.path.join(self._packagesDir, dirEntry)
       if os.path.isdir(fullPath):
         shutil.rmtree(fullPath)
@@ -170,6 +190,16 @@ class VistADataExtractor:
     for f in zwrFiles:
       if os.stat(f).st_size > maxSize:
         splitZWR(f, maxSize)
+
+  def __copyAllClasses__(self):
+    if not self._cache:
+      return
+    logger.info("Copying all classes file from %s to %s" %
+                (self._cacheclassesDir, self._packagesDir))
+    xmlFiles = glob.glob(os.path.join(self._cacheclassesDir, "*.xml"))
+    for xmlFile in xmlFiles:
+      logger.debug("Copying %s to %s" % (xmlFile, self._packagesDir))
+      shutil.copy2(xmlFile, self._packagesDir)
 
   def __populatePackageFiles__(self):
     from PopulatePackages import populate
@@ -210,12 +240,12 @@ class VistADataExtractor:
   def __cleanup__(self):
     pass
 
-def main():
+def getInputArgumentResult():
   testClientParser = createTestClientArgParser()
   parser = argparse.ArgumentParser(description='VistA M Component Extractor',
                                    parents=[testClientParser])
   parser.add_argument('-o', '--outputDir', required=True,
-                      help='output Dir to store global/routine export files')
+                      help='output Dir to store global/routine/classes export files')
   parser.add_argument('-r', '--vistARepo', required=True,
                     help='path to the top directory of VistA-M repository')
   parser.add_argument('-l', '--logDir', required=True,
@@ -223,7 +253,10 @@ def main():
   parser.add_argument('-ro', '--routineOutDir', default=None,
                 help='path to the directory where GT. M stores routines')
   result = parser.parse_args();
-  print (result)
+  return result
+
+def main():
+  result = getInputArgumentResult()
   outputDir = result.outputDir
   assert os.path.exists(outputDir)
   initConsoleLogging()
@@ -238,8 +271,19 @@ def main():
     vistADataExtractor.extractData(testClient)
 
 def test1():
-  vistADataExtractor = VistADataExtractor(".",".",".")
-  vistADataExtractor.unpackRoutines(sys.argv[1], sys.argv[2])
+  result = getInputArgumentResult()
+  outputDir = result.outputDir
+  assert os.path.exists(outputDir)
+  initConsoleLogging()
+  """ create the VistATestClient"""
+  testClient = VistATestClientFactory.createVistATestClientWithArgs(result)
+  assert testClient
+  with testClient as vistAClient:
+    vistADataExtractor = VistADataExtractor(result.vistARepo,
+                                            outputDir,
+                                            result.logDir,
+                                            result.routineOutDir)
+    vistADataExtractor.__exportAllCacheClasses__(testClient)
   #vistADataExtractor.__chmodGlobalOutput__()
   #vistADataExtractor.__removePackagesTree__()
   #vistADataExtractor.__unpackRoutines__()
