@@ -122,6 +122,23 @@ def getCommitInfo(gitRepoDir=None, revision='HEAD'):
     return dict(zip(outfmtLst, output.strip('\r\n').split(delim)))
   return None
 
+def getFileChangeStatusByRevision(revision='HEAD', gitRepoDir=None):
+  """
+    Utility function to retrieve all files changed and status with regard
+    to the specified commit revision
+    @revision: the revision to retrieve info, default is HEAD
+    @gitRepoDir: git repository directory, default is current directory.
+                 if provided, will only report info WRT to git repository
+    @return: return commit info dictionary
+  """
+  delim = '\n'
+  git_command_list = ["git", "diff-tree", "--no-commit-id", "--name-status", "-r"]
+  git_command_list.extend([revision])
+  result, output = _runGitCommand(git_command_list, gitRepoDir)
+  if result:
+    return (output.strip('\r\n').split(delim))
+  return None
+
 def _runGitCommand(gitCmdList, workingDir):
   """
     Private Utility function to run git command in subprocess
