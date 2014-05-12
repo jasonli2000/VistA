@@ -18,6 +18,7 @@ import sys
 import subprocess
 import re
 import argparse
+import logging
 from LoggerManager import logger, initConsoleLogging
 
 """ Utilities Functions to wrap around git command functions via subprocess
@@ -122,6 +123,20 @@ def getCommitInfo(gitRepoDir=None, revision='HEAD'):
     return dict(zip(outfmtLst, output.strip('\r\n').split(delim)))
   return None
 
+def getCommitHashes(revisionRange, gitRepoDir=None, ignoreMerge=True):
+  git_command_list = ["git", "log"]
+  if ignoreMerge:
+    git_command_list.extend(['--no-merges'])
+  fmtStr = "--format=%H"
+  delim = '\n'
+  git_command_list.extend([fmtStr, revisionRange])
+  result, output = _runGitCommand(git_command_list, gitRepoDir)
+  if result:
+    return output.strip('\r\n').split(delim)
+  else:
+    logging.error(output)
+  return None
+
 def getFileChangeStatusByRevision(revision='HEAD', gitRepoDir=None):
   """
     Utility function to retrieve all files changed and status with regard
@@ -129,15 +144,38 @@ def getFileChangeStatusByRevision(revision='HEAD', gitRepoDir=None):
     @revision: the revision to retrieve info, default is HEAD
     @gitRepoDir: git repository directory, default is current directory.
                  if provided, will only report info WRT to git repository
-    @return: return commit info dictionary
+    @return: return commit info List
   """
   delim = '\n'
   git_command_list = ["git", "diff-tree", "--no-commit-id", "--name-status", "-r"]
   git_command_list.extend([revision])
   result, output = _runGitCommand(git_command_list, gitRepoDir)
   if result:
-    return (output.strip('\r\n').split(delim))
+    return [x.split('\t') for x in (output.strip('\r\n').split(delim))]
   return None
+
+def getFileByRevision(filePath, outDir, revision='HEAD', gitRepoDir=None):
+  """
+    Utility function to retrieve all files changed and status with regard
+    to the specified commit revision
+    @revision: the revision to retrieve info, default is HEAD
+    @gitRepoDir: git repository directory, default is current directory.
+                 if provided, will only report info WRT to git repository
+    @return: True if OK, False otherwise
+  """
+  git_command_list = ["git", "show"]
+  git_command_list.extend(["%s:%s" % (revision, filePath)])
+  result, output = _runGitCommand(git_command_list, gitRepoDir)
+  if result:
+    outputDir = os.path.join(outDir, os.path.dirname(filePath))
+    if not os.path.exists(outputDir):
+      os.makedirs(outputDir)
+    with open(os.path.join(outputDir, os.path.basename(filePath)),
+             "w") as outFile:
+      outFile.write(output)
+  else:
+    logging.error(output)
+  return result
 
 def _runGitCommand(gitCmdList, workingDir):
   """

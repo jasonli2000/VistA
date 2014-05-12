@@ -116,18 +116,20 @@ def isValidPatchDataSuffix(fileName, includeExternalExt=False):
                           )
   return isValid
 
-def isValidPatchRelatedFiles(absFileName, checkExternalExt=False):
+def isValidPatchRelatedFiles(absFileName, checkExternalExt=False,
+                             checkLink=True):
   fileName = os.path.basename(absFileName)
   # ignore files that starts with .
   if fileName.startswith('.'):
     return False
   # ignore symlink files as well
-  try:
-    st = os.stat(absFileName)
-    if stat.S_ISLNK(st.st_mode):
+  if checkLink:
+    try:
+      st = os.stat(absFileName)
+      if stat.S_ISLNK(st.st_mode):
+        return False
+    except OSError:
       return False
-  except OSError:
-    return False
   # ignore the external data file
   if fileName.startswith(EXTERNAL_DATA_PREFIX):
     return False
