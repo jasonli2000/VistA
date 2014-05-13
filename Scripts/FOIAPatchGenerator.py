@@ -62,8 +62,8 @@ class FOIAPatchGenerator(object):
     sha1sumDict = {}
     for status, filePath in fileChangeLst:
       absFileName = os.path.join(self._foiaGitRepo, filePath)
-      if (not isValidPatchRelatedFiles(absFileName, checkLink=False)) and
-         (not isFOIAExcelSpreadSheet(absFileName)) :
+      if (not isValidPatchRelatedFiles(absFileName, checkLink=False) and
+          not isFOIAExcelSpreadSheet(absFileName)) :
         logging.warn("ignore %s" % absFileName)
         continue
       if status.strip(' ') == 'D':
