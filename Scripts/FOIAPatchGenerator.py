@@ -27,6 +27,10 @@ from GitUtils import getFileByRevision, getCommitHashes
 from LoggerManager import initConsoleLogging
 from ConvertToExternalData import isValidPatchRelatedFiles
 from ConvertToExternalData import generateSha1Sum
+from FOIAExcel2Csv import convertExcelToCsv
+
+def isFOIAExcelSpreadSheet(fileName):
+  return fileName.endswith("xls")
 
 class FOIAPatchGenerator(object):
   """
@@ -58,7 +62,8 @@ class FOIAPatchGenerator(object):
     sha1sumDict = {}
     for status, filePath in fileChangeLst:
       absFileName = os.path.join(self._foiaGitRepo, filePath)
-      if not isValidPatchRelatedFiles(absFileName, checkLink=False):
+      if (not isValidPatchRelatedFiles(absFileName, checkLink=False)) and
+         (not isFOIAExcelSpreadSheet(absFileName)) :
         logging.warn("ignore %s" % absFileName)
         continue
       if status.strip(' ') == 'D':
@@ -69,16 +74,22 @@ class FOIAPatchGenerator(object):
                                   rev, self._foiaGitRepo)
       if not result:
         logging.warn("Could not copy file %s" % result)
-      """ check for duplicate patches """
       dstFile = os.path.join(self._outDir, filePath)
+      """ check for duplicate patches """
       sha1sum = generateSha1Sum(dstFile)
       if sha1sum in sha1sumDict:
         logging.warn("Duplicate file: %s and %s" % (dstFile,
                                                     sha1sumDict[sha1sum]))
         os.unlink(dstFile)
         logging.warn("Removing file: %s" % dstFile)
+        continue
       else:
         sha1sumDict[sha1sum] = filePath
+      if dstFile.endswith(".xls"):
+        """ convert to csv file first and copy to dst """
+        csvFile = dstFile[0:dstFile.rindex(".xls")] + ".csv"
+        convertExcelToCsv(dstFile, csvFile)
+        os.unlink(dstFile)
 
 def main():
   import argparse
