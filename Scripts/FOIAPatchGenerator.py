@@ -32,10 +32,11 @@ class FOIAPatchGenerator(object):
   """
     Generate FOIA Patch based on FOIA mirror
   """
-  def __init__(self, foiaGitRepo, patchRepo, outputDir):
+  def __init__(self, foiaGitRepo, patchRepo, outputDir, revRange):
     self._foiaGitRepo = foiaGitRepo
     self._patchRepo = patchRepo
     self._outDir = outputDir
+    self._revRange = revRange
 
   def generatePatch(self):
     self._getFOIARepoHist()
@@ -44,8 +45,10 @@ class FOIAPatchGenerator(object):
     """
       return a list of commit hash, assume FOIA mirror repo is all linear
     """
-    revList = getCommitHashes('-5', self._foiaGitRepo)
+    revList = getCommitHashes(self._revRange, self._foiaGitRepo)
     logging.debug(revList)
+    if not revList:
+      return
     for rev in revList:
       self._checkoutChangedFile(rev)
 
@@ -74,6 +77,8 @@ class FOIAPatchGenerator(object):
                                                     sha1sumDict[sha1sum]))
         os.unlink(dstFile)
         logging.warn("Removing file: %s" % dstFile)
+      else:
+        sha1sumDict[sha1sum] = filePath
 
 def main():
   import argparse
@@ -81,11 +86,12 @@ def main():
   parser.add_argument('foiaRepo', help='FOIA Mirror Git Repository')
   parser.add_argument('patchRepo', help='VistA Patch Git Repository')
   parser.add_argument('outDir', help='outDir')
+  parser.add_argument('revRange', help='revision range')
   result = parser.parse_args()
   print (result)
   initConsoleLogging()
   patchGen = FOIAPatchGenerator(result.foiaRepo, result.patchRepo,
-                                result.outDir)
+                                result.outDir, result.revRange)
   patchGen.generatePatch()
 
 if __name__ == '__main__':
