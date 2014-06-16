@@ -17,6 +17,8 @@
 #-----------------------------------------------------------------------------#
 ##### SECTION TO GENERATE VISUAL CROSS REFERENCE DOCUMENTATION #####
 #-----------------------------------------------------------------------------#
+include(CommonFunctions)
+SetVendorArgs(VendorArgs)
 if(TEST_VISTA_DOX_CALLERGRAPH)
   if(TEST_VISTA_FRESH_M_DIR)
     file(GLOB PACKAGES ${TEST_VISTA_FRESH_M_DIR}/Packages/*)
@@ -30,19 +32,17 @@ if(TEST_VISTA_DOX_CALLERGRAPH)
         set(AllRoutines "")
         foreach(routine ${routines})
           get_filename_component(routine_name ${routine} NAME_WE)
-          set(AllRoutines "${AllRoutines}AllRoutines.append(\"${routine_name}\")\n")
+          set(AllRoutines ${AllRoutines} "${routine_name}")
         endforeach()
         string(REPLACE  " " "_" package_file_name "${package_name}")
         set(logfile "@CALLER_GRAPH_LOG_DIR@/@package_file_name@.log")
         #Configures the python script with the name of the routine
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/XindexCallerGraph.py.in
-                       ${SCRIPT_OUTPUT_DIR}/${package_file_name}.py)
-
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/XindexCallerGraph.cmake.in
-                       ${SCRIPT_OUTPUT_DIR}/${package_file_name}.cmake @ONLY)
-
+        set(XindexArgs
+            ${VendorArgs}
+            "-o" "${logfile}"
+            "-r" "${AllRoutines}")
         #Creates the command that will be called for the Test
-        add_test(CALLERGRAPH_${package_file_name} ${CMAKE_COMMAND} -P ${SCRIPT_OUTPUT_DIR}/${package_file_name}.cmake)
+        add_test(CALLERGRAPH_${package_file_name} ${PYTHON_EXECUTABLE} ${VISTA_SOURCE_DIR}/Scripts/VistAXindex.py ${XindexArgs})
       endif()
     endforeach()
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/FileManGlobalAttributes.py.in ${SCRIPT_OUTPUT_DIR}/FilemanGlobalAttributes.py)

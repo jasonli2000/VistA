@@ -101,6 +101,7 @@ elseif(CCONTROL_EXECUTABLE)
   include(UseCache)
 endif()
 
+set(VENDOR_NAME ${VENDOR_NAME} PARENT_SCOPE)
 #---------------------------------------------------------------------------------#
 ##### SECTION TO GENERATE FILES FOR COVERAGE (Using CMake V 2.8.9 and Higher) #####
 #---------------------------------------------------------------------------------#
