@@ -467,6 +467,8 @@ class FileManGlobalDataParser(object):
       self._updateRPCRefence()
     if '101' in self._glbData:
       self._updateHL7Reference()
+    if '9.4' in self._glbData:
+      self._updatePackgeInfo()
 
   def outRtnReferenceDict(self):
     if len(self._rtnRefDict):
@@ -545,6 +547,27 @@ class FileManGlobalDataParser(object):
             rpcTag = rpcEntry.fields['.02'].value
             rpcInfo['tag'] = rpcTag
           self._rtnRefDict.setdefault(rpcRoutine,{}).setdefault('8994',[]).append(rpcInfo)
+
+  def _updatePackgeInfo(self):
+    """ generate package information """
+    pkgData = self._glbData['9.4']
+    pkgDes = {}
+    for ien in sorted(pkgData.dataEntries.keys(), key=lambda x: float(x)):
+      pkgEntry = pkgData.dataEntries[ien]
+      if '1' in pkgEntry.fields:
+        pkgPrefix = pkgEntry.fields['1'].value
+        if '2' in pkgEntry.fields:
+          pkgDes.setdefault(pkgPrefix,{})['shortdes'] = pkgEntry.fields['2'].value
+          logging.info("Adding short Des %s to package %s" % (pkgEntry.fields['2'].value, pkgPrefix))
+        if '3' in pkgEntry.fields:
+          pkgDes.setdefault(pkgPrefix,{})['des'] = pkgEntry.fields['3'].value
+          logging.info("Adding long Des %s to package %s" % (pkgEntry.fields['3'].value, pkgPrefix))
+
+    import json
+    """ generate the dependency in json file """
+    with open(os.path.join(self.outDir, "PackageDes.json"), 'w') as output:
+      logging.info("Generate File: %s" % output.name)
+      json.dump(pkgDes, output)
 
   def _resolveSelfPointer(self):
     """ Replace self-reference with meaningful data """
