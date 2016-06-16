@@ -115,13 +115,13 @@ class ConnectMUMPS(object):
     self.write('S DUZ=1 D Q^DI')
     self.wait('OPTION')
     self.write('5')
-    self.wait('FILE:')
+    self.wait_re('FILE:')
     self.write(file)
     self.wait(file + ' NAME')
     self.write(objectname + '\r')
-    self.wait('CAPTIONED OUTPUT?')
+    self.wait_re('CAPTIONED OUTPUT?')
     self.write('N')
-    self.wait('PRINT FIELD')
+    self.wait_re('PRINT FIELD')
     self.write('NUMBER\r')
     self.wait('Heading')
     self.write('')
@@ -439,7 +439,10 @@ class ConnectRemoteSSH(ConnectMUMPS):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     # Connect to the host
-    client.connect(hostname=remote_conn_details.remote_address, username=remote_conn_details.username, password=remote_conn_details.password)
+    client.connect(hostname=remote_conn_details.remote_address,
+                   port=remote_conn_details.remote_port,
+                   username=remote_conn_details.username,
+                   password=remote_conn_details.password)
 
     # Create a client interaction class which will interact with the host
     from paramikoe import SSHClientInteraction
